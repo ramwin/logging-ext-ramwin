@@ -2,6 +2,7 @@
 Tests for DateBasedFileHandler
 """
 
+import re
 import os
 import tempfile
 import shutil
@@ -88,6 +89,7 @@ class TestDateBasedFileHandler:
         # Create multiple log files by changing the pattern
         base_time = datetime.datetime.now()
         
+        # Pre-create 5 files with different times
         for i in range(5):
             # Create a log message for each "minute"
             file_time = base_time - datetime.timedelta(minutes=i)
@@ -98,7 +100,7 @@ class TestDateBasedFileHandler:
             with open(full_path, 'w') as f:
                 f.write(f"Log message {i}")
             
-            # Set modification time
+            # Set modification time (older files first)
             os.utime(full_path, (time.time() - i*60, time.time() - i*60))
         
         # Now log a message to trigger cleanup
@@ -108,14 +110,15 @@ class TestDateBasedFileHandler:
         logger.info("Trigger cleanup")
         handler.close()
         
-        # Only the most recent files should remain (backup_count + current file)
+        # Count remaining files that match the pattern
         existing_files = []
+        pattern = re.compile(handler._file_pattern_regex)
         for f in os.listdir(self.temp_dir):
-            if f.startswith("test-") and f.endswith(".log"):
+            if pattern.match(f) and f != Path(handler._get_current_filename()).name:
                 existing_files.append(f)
         
-        # Should have at most backup_count + 1 files (including current)
-        assert len(existing_files) <= 3  # backup_count(2) + current file
+        # Should have at most backup_count files (excluding current file)
+        assert len(existing_files) <= 2  # backup_count(2)
     
     def test_pattern_matching(self):
         """Test that pattern matching works correctly."""
@@ -155,10 +158,14 @@ class TestDateBasedFileHandler:
         handler.close()
         
         # Check that only matching log files are considered for cleanup
-        remaining_files = [f for f in os.listdir(self.temp_dir) if f.startswith("app-") and f.endswith(".log")]
+        pattern = re.compile(handler._file_pattern_regex)
+        remaining_files = []
+        for f in os.listdir(self.temp_dir):
+            if f.startswith("app-") and f.endswith(".log") and pattern.match(f) and f != Path(handler._get_current_filename()).name:
+                remaining_files.append(f)
         
-        # Should keep at most backup_count + 1 files
-        assert len(remaining_files) <= 2  # backup_count(1) + current file
+        # Should keep at most backup_count files (excluding current file)
+        assert len(remaining_files) <= 1  # backup_count(1)
         
         # Non-matching files should still exist
         for filename in non_matching_files:
