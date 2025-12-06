@@ -2,4 +2,5 @@
 # Xiang Wang(ramwin@qq.com)
 
 
-python3 -m unittest test tests.test_handlers
+pytest tests
+# python3 -m unittest test tests.test_handlers
