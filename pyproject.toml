@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "logging_ext_ramwin"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Extended logging handlers with date-based filename formatting"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -35,3 +35,6 @@ Issues = "https://github.com/ramwin/logging-ext-ramwin/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/logging_ext"]
+
+[tool.hatch.version]
+path = "src/logging_ext/__init__.py"
