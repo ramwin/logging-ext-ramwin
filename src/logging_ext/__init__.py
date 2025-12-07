@@ -6,7 +6,7 @@ import logging
 
 from .handlers import DateBasedFileHandler
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __all__ = ["DateBasedFileHandler"]
 
 
@@ -27,6 +27,7 @@ def setup_handler():
     """
     init file log handler and stream handler
     """
+    stream_handler.setLevel(logging.INFO)
     file_handler = logging.FileHandler("info.log", mode="w")
     file_handler.setFormatter(logging.Formatter(
          '%(asctime)s [%(module)s:%(lineno)d] %(levelname)s %(message)s'
